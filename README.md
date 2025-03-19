@@ -97,7 +97,7 @@ As we move forward with development, we might want to prioritize implementing th
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/seo-blog-builder.git
+git clone https://github.com/gscrawley/seo-blog-builder.git
 cd seo-blog-builder
 ```
 

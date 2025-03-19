@@ -39,6 +39,7 @@ class Project(Base):
     # Relationships
     client = relationship("Client", back_populates="projects")
     websites = relationship("Website", back_populates="project")
+    static_sites = relationship("StaticSite", back_populates="project")
     content_items = relationship("ContentItem", back_populates="project")
     
     def __repr__(self):

@@ -8,22 +8,23 @@ alembic==1.13.1
 redis==5.0.1
 httpx==0.26.0
 
-# CrewAI and LLM
-crewai==0.28.0
+# LLM APIs
 anthropic==0.15.0
 openai==1.6.1
 
-# WordPress integrations
-python-wordpress-xmlrpc==2.3
+# SEO and analysis tools
+google-ads==20.0.0
 requests==2.31.0
-
-# SEO tools
-semrush-api-client==0.1.5
-pyahrefs==0.4.0
-
-# Utilities
 beautifulsoup4==4.12.2
 lxml==4.9.3
+nltk==3.8.1
+
+# Static site generation
+markdown==3.5.1
+pyyaml==6.0.1
+jinja2==3.1.2
+
+# Utilities
 python-slugify==8.0.1
 Pillow==10.2.0
 python-multipart==0.0.6

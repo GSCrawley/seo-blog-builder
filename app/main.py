@@ -5,7 +5,7 @@ import logging
 import uvicorn
 import os
 
-from app.api.routes import projects, clients, analytics
+from app.api.routes import projects, clients, analytics, blog_generator, seo
 from app.config import settings
 from app.db.session import engine, Base, get_db
 from app.utils.logger import setup_logging
@@ -51,6 +51,8 @@ app.add_middleware(
 app.include_router(projects.router, prefix="/api/projects", tags=["projects"])
 app.include_router(clients.router, prefix="/api/clients", tags=["clients"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
+app.include_router(blog_generator.router, prefix="/api/blog", tags=["blog_generator"])
+app.include_router(seo.router, prefix="/api/seo", tags=["seo"])
 
 @app.get("/")
 async def root():
