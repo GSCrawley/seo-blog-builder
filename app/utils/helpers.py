@@ -1,131 +1,132 @@
 """
-Helper functions for the SEO Blog Builder application.
+Helper utilities for the SEO Blog Builder application.
 """
+import re
+import unicodedata
 import os
 import json
-import string
-import random
-import re
 from typing import Dict, Any, List, Optional
 import logging
-from datetime import datetime
-from pathlib import Path
-
-from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-def load_prompt_template(template_name: str) -> str:
+def slugify(text: str) -> str:
     """
-    Load a prompt template from the prompts directory.
+    Create a URL-friendly slug from text.
     
     Args:
-        template_name: Name of the template file
+        text: Text to convert to slug
         
     Returns:
-        str: Content of the template file
+        str: URL-friendly slug
     """
-    template_path = os.path.join(settings.PROMPT_TEMPLATES_DIR, template_name)
-    try:
-        with open(template_path, 'r', encoding='utf-8') as file:
-            return file.read()
-    except FileNotFoundError:
-        logger.error(f"Template file not found: {template_path}")
-        return ""
-    except Exception as e:
-        logger.error(f"Error loading template {template_name}: {str(e)}")
-        return ""
-
-def generate_project_id() -> str:
-    """
-    Generate a unique project ID.
+    # Convert to lowercase
+    text = text.lower()
     
-    Returns:
-        str: Unique project ID
+    # Remove accents and normalize
+    text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
+    
+    # Replace any non-word character with a space
+    text = re.sub(r'[^\w\s-]', ' ', text)
+    
+    # Replace spaces with hyphens
+    text = re.sub(r'[-\s]+', '-', text).strip('-_')
+    
+    return text
+
+def safe_json_loads(json_str: str, default_value: Any = None) -> Any:
     """
-    timestamp = datetime.now().strftime("%Y%m%d")
-    random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-    return f"PRJ-{timestamp}-{random_str}"
+    Safely load JSON string.
+    
+    Args:
+        json_str: JSON string to load
+        default_value: Default value to return if loading fails
+        
+    Returns:
+        Any: Loaded JSON data or default value
+    """
+    try:
+        return json.loads(json_str)
+    except (json.JSONDecodeError, TypeError):
+        return default_value if default_value is not None else {}
+
+def truncate_text(text: str, max_length: int, add_ellipsis: bool = True) -> str:
+    """
+    Truncate text to a maximum length.
+    
+    Args:
+        text: Text to truncate
+        max_length: Maximum length
+        add_ellipsis: Whether to add ellipsis if truncated
+        
+    Returns:
+        str: Truncated text
+    """
+    if not text or len(text) <= max_length:
+        return text
+    
+    # Truncate at the last space before max_length to avoid cutting words
+    truncated = text[:max_length].rsplit(' ', 1)[0]
+    
+    if add_ellipsis:
+        truncated += '...'
+    
+    return truncated
+
+def clean_html(html: str) -> str:
+    """
+    Remove HTML tags from text.
+    
+    Args:
+        html: HTML text to clean
+        
+    Returns:
+        str: Clean text without HTML tags
+    """
+    # Simple HTML tag removal (for basic cases)
+    clean = re.sub(r'<[^>]*>', '', html)
+    
+    # Replace multiple spaces with a single space
+    clean = re.sub(r'\s+', ' ', clean).strip()
+    
+    return clean
+
+def create_directory_if_not_exists(path: str) -> bool:
+    """
+    Create a directory if it doesn't exist.
+    
+    Args:
+        path: Directory path
+        
+    Returns:
+        bool: True if directory exists or was created, False otherwise
+    """
+    try:
+        if not os.path.exists(path):
+            os.makedirs(path)
+        return True
+    except Exception as e:
+        logger.error(f"Error creating directory {path}: {str(e)}")
+        return False
 
 def sanitize_filename(filename: str) -> str:
     """
-    Sanitize a filename to be safe for filesystem operations.
+    Sanitize a filename to make it safe for file systems.
     
     Args:
-        filename: The filename to sanitize
+        filename: Filename to sanitize
         
     Returns:
         str: Sanitized filename
     """
-    # Remove invalid characters
-    valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
-    sanitized = ''.join(c for c in filename if c in valid_chars)
+    # Replace invalid characters
+    filename = re.sub(r'[\\/*?:"<>|]', "", filename)
     
     # Replace spaces with underscores
-    sanitized = sanitized.replace(' ', '_')
+    filename = filename.replace(' ', '_')
     
-    return sanitized
-
-def extract_keywords_from_text(text: str, min_length: int = 3) -> List[str]:
-    """
-    Extract potential keywords from text.
+    # Ensure it's not empty
+    if not filename:
+        filename = "file"
     
-    Args:
-        text: The text to extract keywords from
-        min_length: Minimum length of words to consider
-        
-    Returns:
-        List[str]: List of potential keywords
-    """
-    # Basic implementation - would be enhanced with NLP in a real system
-    words = re.findall(r'\b[a-zA-Z]{%d,}\b' % min_length, text.lower())
-    # Remove duplicates while preserving order
-    return list(dict.fromkeys(words))
-
-def merge_dictionaries(dict1: Dict[str, Any], dict2: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Deep merge two dictionaries.
-    
-    Args:
-        dict1: First dictionary
-        dict2: Second dictionary
-        
-    Returns:
-        Dict[str, Any]: Merged dictionary
-    """
-    result = dict1.copy()
-    
-    for key, value in dict2.items():
-        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-            result[key] = merge_dictionaries(result[key], value)
-        else:
-            result[key] = value
-            
-    return result
-
-def ensure_directory_exists(directory_path: str) -> None:
-    """
-    Ensure a directory exists, creating it if necessary.
-    
-    Args:
-        directory_path: Path to the directory
-    """
-    os.makedirs(directory_path, exist_ok=True)
-
-def format_currency(amount: float, currency: str = "USD") -> str:
-    """
-    Format a number as currency.
-    
-    Args:
-        amount: The amount to format
-        currency: Currency code
-        
-    Returns:
-        str: Formatted currency string
-    """
-    if currency == "USD":
-        return f"${amount:,.2f}"
-    elif currency == "EUR":
-        return f"€{amount:,.2f}"
-    else:
-        return f"{amount:,.2f} {currency}"
+    return filename

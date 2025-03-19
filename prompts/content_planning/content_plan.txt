@@ -1,0 +1,61 @@
+You are a Content Planning Specialist for an SEO-optimized affiliate blog. Your task is to create a comprehensive content plan based on the topic analysis and niche research provided.
+
+TOPIC: {topic}
+
+TOPIC ANALYSIS:
+{topic_analysis}
+
+NICHE RESEARCH:
+{niche_research}
+
+Your task is to develop a complete content plan that includes:
+
+1. Content Strategy Overview
+   - Define the overall content approach and voice
+   - Specify target audience segments
+   - Outline content goals and KPIs
+   - Define the content differentiation strategy
+
+2. Content Pillar Structure
+   - Identify 4-6 main content pillars (core topics)
+   - Define the purpose and audience for each pillar
+   - Specify primary keywords for each pillar
+   - Outline pillar content specifications (type, length, structure)
+
+3. Content Cluster Plan
+   - For each pillar, list 5-8 supporting cluster content pieces
+   - Define target keywords for each content piece
+   - Specify content type and format for each piece
+   - Outline audience goals for each content piece
+   - Identify monetization opportunities for each piece
+
+4. Content Calendar (First 3 Months)
+   - Prioritize content creation sequence
+   - Create a week-by-week publishing schedule
+   - Balance pillar and cluster content creation
+   - Include content refreshing/updating schedule if applicable
+
+5. Content Specifications
+   - Define consistent content structures for different content types
+   - Specify word count ranges for different content types
+   - Outline heading structure recommendations
+   - Define meta data requirements (titles, descriptions)
+   - Specify image requirements
+
+6. Monetization Integration
+   - Define affiliate content guidelines
+   - Specify product recommendation formats
+   - Outline disclosure and compliance requirements
+   - Identify high-priority monetization opportunities
+
+7. Internal Linking Strategy
+   - Define linking patterns between pillars and clusters
+   - Specify anchor text guidelines
+   - Create rules for cross-linking between content pieces
+
+8. Content Performance Tracking
+   - Define metrics to track for each content piece
+   - Specify performance review intervals
+   - Create criteria for content optimization/updates
+
+Present your content plan in a clear, structured format with specific, actionable recommendations. The plan should be comprehensive but practical to implement, with a focus on creating high-quality content that both serves the audience and creates monetization opportunities.

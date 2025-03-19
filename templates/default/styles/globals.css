@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global styles */
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+/* Custom utility classes */
+@layer components {
+  .container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .btn {
+    @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary hover:bg-opacity-90 focus:ring-secondary;
+  }
+  
+  .card {
+    @apply bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg;
+  }
+  
+  .prose a {
+    @apply text-primary hover:text-opacity-80;
+  }
+}
+
+/* Affiliate link styles */
+.affiliate-link {
+  @apply font-medium text-primary underline decoration-dotted underline-offset-2;
+}
+
+/* Product box styles */
+.product-box {
+  @apply border border-gray-200 rounded-lg p-4 my-6 bg-gray-50;
+}
+
+.product-box img {
+  @apply mx-auto mb-4;
+}
+
+.product-box h3 {
+  @apply text-xl font-bold mb-2;
+}
+
+.product-box .price {
+  @apply text-lg font-semibold text-primary mb-2;
+}
+
+.product-box .cta {
+  @apply btn mt-4 w-full justify-center;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}
