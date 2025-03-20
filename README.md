@@ -2,6 +2,8 @@
 
 A SaaS application that creates customized SEO-optimized blog sites for marketing using an agentic architecture.
 
+### Note: The last thing that was done was to create a frontend folder where we are going to create a React UI for the blog generator front-end. So that will be our next step. 
+
 ## Project Overview
 
 This system uses a central orchestrator agent that directs specialized agents, each responsible for specific tasks in the blog creation process. The architecture is designed around the CrewAI framework, allowing for flexible, collaborative AI agents that work together to create high-quality, SEO-optimized blog sites.
