@@ -286,9 +286,85 @@ class Orchestrator:
         """
         logger.info(f"Processing content planning for project {project_id}")
         
-        # Similar implementation to the previous methods
-        # This would create a content plan with article topics, structures, etc.
-        pass
+        try:
+            # Get the current project state
+            project_state = self.state_manager.get_project_state(project_id)
+            topic = project_state.get("topic", "")
+            topic_analysis = project_state.get("topic_analysis", {})
+            niche_research = project_state.get("niche_research", {})
+            
+            # Mark stage as in progress
+            self._update_stage_status(project_id, "content_planning", "in_progress")
+            
+            # Use the SEO service to create a content plan
+            from app.services.seo import SeoService
+            seo_service = SeoService()
+            
+            # Get the number of articles from user preferences or default to 5
+            num_articles = project_state.get("preferences", {}).get("num_articles", 5)
+            
+            # Create content plan
+            content_plan = seo_service.create_content_plan(topic, num_articles)
+            
+            # Update project state with content plan
+            self.state_manager.update_project_state(
+                project_id,
+                {
+                    "content_plan": content_plan,
+                    "progress": 45  # Update progress percentage
+                }
+            )
+            
+            # Add event to timeline
+            self.state_manager.add_event_to_project_timeline(
+                project_id,
+                {
+                    "event_type": "content_planning_completed",
+                    "description": f"Created content plan with {num_articles} articles for: {topic}",
+                    "data": {"content_plan_summary": {
+                        "pillar_content": content_plan.get("pillar_content", {}).get("title"),
+                        "cluster_content": [c.get("title") for c in content_plan.get("cluster_content", [])][:3],
+                        "total_articles": content_plan.get("total_articles", 0)
+                    }}
+                }
+            )
+            
+            # Mark stage as completed
+            self._update_stage_status(project_id, "content_planning", "completed")
+            
+            # Start the next stage
+            self._update_stage_status(project_id, "content_creation", "in_progress")
+            
+            return {
+                "success": True,
+                "project_id": project_id,
+                "topic": topic,
+                "content_plan": content_plan,
+                "next_stage": "content_creation"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error processing content planning: {str(e)}")
+            
+            # Update stage status to failed
+            self._update_stage_status(project_id, "content_planning", "failed")
+            
+            # Add error event to timeline
+            self.state_manager.add_event_to_project_timeline(
+                project_id,
+                {
+                    "event_type": "content_planning_failed",
+                    "description": f"Failed to complete content planning: {str(e)}",
+                    "data": {"error": str(e)}
+                }
+            )
+            
+            return {
+                "success": False,
+                "project_id": project_id,
+                "error": str(e),
+                "message": "Failed to complete content planning"
+            }
     
     def process_content_creation(self, project_id: str) -> Dict[str, Any]:
         """
@@ -302,9 +378,174 @@ class Orchestrator:
         """
         logger.info(f"Processing content creation for project {project_id}")
         
-        # Similar implementation to the previous methods
-        # This would generate the actual blog content
-        pass
+        try:
+            # Get the current project state
+            project_state = self.state_manager.get_project_state(project_id)
+            topic = project_state.get("topic", "")
+            content_plan = project_state.get("content_plan", {})
+            
+            # Mark stage as in progress
+            self._update_stage_status(project_id, "content_creation", "in_progress")
+            
+            # Extract content items from the plan
+            pillar_content = content_plan.get("pillar_content", {})
+            cluster_content = content_plan.get("cluster_content", [])
+            
+            # Initialize results
+            generated_content = []
+            
+            # Generate pillar content first
+            if pillar_content:
+                pillar_article = self._generate_article(
+                    topic=topic,
+                    article_plan=pillar_content,
+                    is_pillar=True
+                )
+                generated_content.append(pillar_article)
+            
+            # Generate cluster content
+            for article_plan in cluster_content:
+                cluster_article = self._generate_article(
+                    topic=topic,
+                    article_plan=article_plan,
+                    is_pillar=False
+                )
+                generated_content.append(cluster_article)
+            
+            # Update project state with generated content
+            self.state_manager.update_project_state(
+                project_id,
+                {
+                    "generated_content": generated_content,
+                    "progress": 65  # Update progress percentage
+                }
+            )
+            
+            # Add event to timeline
+            self.state_manager.add_event_to_project_timeline(
+                project_id,
+                {
+                    "event_type": "content_creation_completed",
+                    "description": f"Created {len(generated_content)} articles for: {topic}",
+                    "data": {
+                        "article_count": len(generated_content),
+                        "titles": [article.get("title") for article in generated_content[:3]]
+                    }
+                }
+            )
+            
+            # Mark stage as completed
+            self._update_stage_status(project_id, "content_creation", "completed")
+            
+            # Start the next stage
+            self._update_stage_status(project_id, "site_generation", "in_progress")
+            
+            return {
+                "success": True,
+                "project_id": project_id,
+                "topic": topic,
+                "content_count": len(generated_content),
+                "next_stage": "site_generation"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error processing content creation: {str(e)}")
+            
+            # Update stage status to failed
+            self._update_stage_status(project_id, "content_creation", "failed")
+            
+            # Add error event to timeline
+            self.state_manager.add_event_to_project_timeline(
+                project_id,
+                {
+                    "event_type": "content_creation_failed",
+                    "description": f"Failed to complete content creation: {str(e)}",
+                    "data": {"error": str(e)}
+                }
+            )
+            
+            return {
+                "success": False,
+                "project_id": project_id,
+                "error": str(e),
+                "message": "Failed to complete content creation"
+            }
+    
+    def _generate_article(self, topic: str, article_plan: Dict[str, Any], is_pillar: bool = False) -> Dict[str, Any]:
+        """
+        Generate an article based on a plan.
+        
+        Args:
+            topic: Main topic
+            article_plan: Article plan with title, sections, etc.
+            is_pillar: Whether this is a pillar article
+            
+        Returns:
+            Dict: Generated article
+        """
+        try:
+            title = article_plan.get("title", f"Article about {topic}")
+            target_keyword = article_plan.get("target_keyword", topic)
+            sections = article_plan.get("sections", [])
+            
+            # Load the article generation prompt
+            prompt = self._load_prompt_template("article_generation")
+            
+            # Replace placeholders in the prompt
+            prompt = prompt.replace("{title}", title)
+            prompt = prompt.replace("{primary_keyword}", target_keyword)
+            prompt = prompt.replace("{content_type}", article_plan.get("type", "article"))
+            
+            # Format sections for the prompt
+            sections_text = "\n".join([f"## {section.get('heading')} ({section.get('word_count', 200)} words)" for section in sections])
+            prompt = prompt.replace("{content_brief}", f"This article should cover the following sections:\n{sections_text}")
+            
+            # Execute the prompt with Claude (better for long-form content)
+            response = self.claude_service.get_completion(prompt, temperature=0.7, max_tokens=4000)
+            
+            # Format the result
+            article = {
+                "title": title,
+                "slug": self._generate_slug(title),
+                "content": response,
+                "primary_keyword": target_keyword,
+                "is_pillar": is_pillar,
+                "word_count": len(response.split()),
+                "markdown_content": response,  # Save for static site generation
+                "created_at": datetime.now().isoformat()
+            }
+            
+            # Generate meta tags
+            from app.services.seo import SeoService
+            seo_service = SeoService()
+            meta_tags = seo_service.generate_meta_tags(title, response, target_keyword)
+            
+            article["meta_title"] = meta_tags.get("title")
+            article["meta_description"] = meta_tags.get("description")
+            article["meta_keywords"] = meta_tags.get("keywords")
+            
+            return article
+            
+        except Exception as e:
+            logger.error(f"Error generating article: {str(e)}")
+            return {
+                "title": article_plan.get("title", f"Article about {topic}"),
+                "content": f"Error generating content: {str(e)}",
+                "error": str(e)
+            }
+    
+    def _generate_slug(self, title: str) -> str:
+        """
+        Generate a URL slug from a title.
+        
+        Args:
+            title: Article title
+            
+        Returns:
+            str: URL slug
+        """
+        from app.utils.helpers import slugify
+        return slugify(title)
     
     def process_site_generation(self, project_id: str) -> Dict[str, Any]:
         """
@@ -318,9 +559,152 @@ class Orchestrator:
         """
         logger.info(f"Processing site generation for project {project_id}")
         
-        # Similar implementation to the previous methods
-        # This would use the StaticSiteGenerationService to build the site
-        pass
+        try:
+            # Get the current project state
+            project_state = self.state_manager.get_project_state(project_id)
+            topic = project_state.get("topic", "")
+            generated_content = project_state.get("generated_content", [])
+            preferences = project_state.get("preferences", {})
+            
+            # Mark stage as in progress
+            self._update_stage_status(project_id, "site_generation", "in_progress")
+            
+            # Initialize static site generation service
+            from app.services.site_generation import StaticSiteGenerationService
+            site_service = StaticSiteGenerationService()
+            
+            # Generate site title and subdomain
+            site_title = preferences.get("site_title", f"{topic.title()} - Expert Guide")
+            subdomain = preferences.get("subdomain", self._generate_slug(topic))
+            
+            # Create site configuration
+            site_config = {
+                "title": site_title,
+                "description": preferences.get("site_description", f"Complete guide to {topic} with expert advice and reviews"),
+                "subdomain": subdomain,
+                "template_id": preferences.get("template", "default"),
+                "primary_color": preferences.get("primary_color", "#3498db"),
+                "secondary_color": preferences.get("secondary_color", "#2ecc71"),
+                "author": preferences.get("author", "Content Team"),
+                "google_analytics_id": preferences.get("google_analytics_id", "")
+            }
+            
+            # Create the static site
+            site_result = site_service.create_site(project_id, site_config)
+            
+            if not site_result.get("success", False):
+                raise Exception(f"Failed to create static site: {site_result.get('message')}")
+            
+            site_id = site_result.get("site_id")
+            site_path = site_result.get("site_path")
+            
+            # Add content to the site
+            for article in generated_content:
+                # Create ContentItem object
+                content_item = self._create_content_item_from_article(article, project_id, site_id)
+                
+                # Add content to the site
+                content_result = site_service.add_content(site_id, content_item)
+                
+                if not content_result.get("success", False):
+                    logger.warning(f"Failed to add content {article.get('title')}: {content_result.get('message')}")
+            
+            # Update project state with site information
+            self.state_manager.update_project_state(
+                project_id,
+                {
+                    "site": {
+                        "id": site_id,
+                        "title": site_title,
+                        "subdomain": subdomain,
+                        "path": site_path
+                    },
+                    "progress": 85  # Update progress percentage
+                }
+            )
+            
+            # Add event to timeline
+            self.state_manager.add_event_to_project_timeline(
+                project_id,
+                {
+                    "event_type": "site_generation_completed",
+                    "description": f"Generated static site for: {topic}",
+                    "data": {
+                        "site_id": site_id,
+                        "site_title": site_title,
+                        "subdomain": subdomain
+                    }
+                }
+            )
+            
+            # Mark stage as completed
+            self._update_stage_status(project_id, "site_generation", "completed")
+            
+            # Start the next stage
+            self._update_stage_status(project_id, "deployment", "in_progress")
+            
+            return {
+                "success": True,
+                "project_id": project_id,
+                "site_id": site_id,
+                "site_title": site_title,
+                "subdomain": subdomain,
+                "next_stage": "deployment"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error processing site generation: {str(e)}")
+            
+            # Update stage status to failed
+            self._update_stage_status(project_id, "site_generation", "failed")
+            
+            # Add error event to timeline
+            self.state_manager.add_event_to_project_timeline(
+                project_id,
+                {
+                    "event_type": "site_generation_failed",
+                    "description": f"Failed to generate site: {str(e)}",
+                    "data": {"error": str(e)}
+                }
+            )
+            
+            return {
+                "success": False,
+                "project_id": project_id,
+                "error": str(e),
+                "message": "Failed to generate site"
+            }
+    
+    def _create_content_item_from_article(self, article: Dict[str, Any], project_id: str, site_id: str) -> Any:
+        """
+        Create a ContentItem object from an article.
+        
+        Args:
+            article: Article data
+            project_id: Project ID
+            site_id: Site ID
+            
+        Returns:
+            Any: ContentItem object
+        """
+        # This is a simplified version that returns a dict
+        # In a real implementation, you would create a database object
+        return {
+            "id": f"CONTENT-{uuid.uuid4().hex[:8].upper()}",
+            "title": article.get("title", ""),
+            "slug": article.get("slug", ""),
+            "project_id": project_id,
+            "static_site_id": site_id,
+            "content_type": "BLOG_POST",
+            "status": "PUBLISHED",
+            "markdown_content": article.get("markdown_content", ""),
+            "meta_title": article.get("meta_title", ""),
+            "meta_description": article.get("meta_description", ""),
+            "primary_keyword": article.get("primary_keyword", ""),
+            "is_pillar": article.get("is_pillar", False),
+            "word_count": article.get("word_count", 0),
+            "publish_date": datetime.now().isoformat()
+        }
     
     def process_deployment(self, project_id: str) -> Dict[str, Any]:
         """
@@ -334,9 +718,123 @@ class Orchestrator:
         """
         logger.info(f"Processing deployment for project {project_id}")
         
-        # Similar implementation to the previous methods
-        # This would use the StaticSiteGenerationService to deploy the site
-        pass
+        try:
+            # Get the current project state
+            project_state = self.state_manager.get_project_state(project_id)
+            topic = project_state.get("topic", "")
+            site_info = project_state.get("site", {})
+            preferences = project_state.get("preferences", {})
+            
+            site_id = site_info.get("id")
+            if not site_id:
+                raise Exception("Site ID not found in project state")
+            
+            # Mark stage as in progress
+            self._update_stage_status(project_id, "deployment", "in_progress")
+            
+            # Initialize static site generation service
+            from app.services.site_generation import StaticSiteGenerationService
+            site_service = StaticSiteGenerationService()
+            
+            # Build the static site
+            build_result = site_service.build_site(site_id)
+            
+            if not build_result.get("success", False):
+                raise Exception(f"Failed to build site: {build_result.get('message')}")
+                
+            # Get deployment provider from preferences or default to Vercel
+            from app.models.static_site import DeploymentProvider
+            provider_name = preferences.get("deployment_provider", "vercel")
+            
+            # Map string to enum
+            provider_map = {
+                "vercel": DeploymentProvider.VERCEL,
+                "netlify": DeploymentProvider.NETLIFY,
+                "github_pages": DeploymentProvider.GITHUB_PAGES,
+                "cloudflare_pages": DeploymentProvider.CLOUDFLARE_PAGES,
+                "custom": DeploymentProvider.CUSTOM
+            }
+            
+            provider = provider_map.get(provider_name.lower(), DeploymentProvider.VERCEL)
+            
+            # Deploy the site
+            deploy_result = site_service.deploy_site(site_id, provider)
+            
+            if not deploy_result.get("success", False):
+                raise Exception(f"Failed to deploy site: {deploy_result.get('message')}")
+            
+            # Extract deployment information
+            deployment_id = deploy_result.get("deployment_id")
+            deployment_url = deploy_result.get("deployment_url")
+            
+            # Update project state with deployment information
+            self.state_manager.update_project_state(
+                project_id,
+                {
+                    "deployment": {
+                        "id": deployment_id,
+                        "url": deployment_url,
+                        "provider": provider_name,
+                        "status": "deployed",
+                        "deployed_at": datetime.now().isoformat()
+                    },
+                    "status": "COMPLETED",
+                    "progress": 100  # Update progress percentage
+                }
+            )
+            
+            # Add event to timeline
+            self.state_manager.add_event_to_project_timeline(
+                project_id,
+                {
+                    "event_type": "deployment_completed",
+                    "description": f"Deployed site to {provider_name}: {deployment_url}",
+                    "data": {
+                        "deployment_id": deployment_id,
+                        "deployment_url": deployment_url,
+                        "provider": provider_name
+                    }
+                }
+            )
+            
+            # Mark stage as completed
+            self._update_stage_status(project_id, "deployment", "completed")
+            
+            # Mark project as completed
+            self.state_manager.update_project_state(
+                project_id,
+                {"status": "COMPLETED"}
+            )
+            
+            return {
+                "success": True,
+                "project_id": project_id,
+                "deployment_url": deployment_url,
+                "status": "completed"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error processing deployment: {str(e)}")
+            
+            # Update stage status to failed
+            self._update_stage_status(project_id, "deployment", "failed")
+            
+            # Add error event to timeline
+            self.state_manager.add_event_to_project_timeline(
+                project_id,
+                {
+                    "event_type": "deployment_failed",
+                    "description": f"Failed to deploy site: {str(e)}",
+                    "data": {"error": str(e)}
+                }
+            )
+            
+            return {
+                "success": False,
+                "project_id": project_id,
+                "error": str(e),
+                "message": "Failed to deploy site"
+            }
     
     def _update_stage_status(self, project_id: str, stage: str, status: str) -> None:
         """
