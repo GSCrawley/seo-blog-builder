@@ -2,7 +2,7 @@
 
 A SaaS application that creates customized SEO-optimized blog sites for marketing using an agentic architecture.
 
-## Overview
+## Project Overview
 
 SEO Blog Builder is a comprehensive solution for generating fully-optimized blog websites with SEO-focused content. It uses a central orchestrator agent that directs specialized agents, each responsible for specific tasks in the blog creation process.
 
