@@ -87,8 +87,15 @@ ENV/
 env.bak/
 venv.bak/
 
-.config
+config.py
+config.json
+config.yaml
+config.yml
+config.ini
+config.toml
+config.xml
 config/
+app/config
 
 # Spyder project settings
 .spyderproject
