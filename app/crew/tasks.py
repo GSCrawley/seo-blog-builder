@@ -662,10 +662,132 @@ class TaskFactory:
             context=context
         )
     
+    def create_wordpress_setup_task(self, project_id: str, site_data: Dict[str, Any], agent: Agent) -> Task:
+        """
+        Create a task for WordPress setup and configuration.
+        
+        Args:
+            project_id: Unique identifier for the project
+            site_data: Site configuration data
+            agent: The agent that will perform this task
+            
+        Returns:
+            Task: A CrewAI task for WordPress setup
+        """
+        return Task(
+            description=f"""
+            Set up and configure a WordPress site for project {project_id} based on technical specifications.
+            
+            Site name: {site_data.get('site_name', 'Not specified')}
+            WordPress credentials are provided through secure configuration.
+            
+            Perform the following WordPress setup tasks:
+            
+            1. Theme Selection and Setup:
+               - Select or recommend a theme that matches the design requirements
+               - Configure theme settings (colors, typography, layouts)
+               - Set up responsive design parameters
+               - Configure header and footer elements
+            
+            2. Plugin Installation and Configuration:
+               - Install SEO plugin (Yoast SEO or equivalent)
+               - Set up caching plugin for performance
+               - Configure security plugins
+               - Add analytics tracking
+               - Set up backup solution
+            
+            3. WordPress Settings Configuration:
+               - Configure permalink structure per SEO specifications
+               - Set up reading settings (posts per page, homepage display)
+               - Configure discussion settings (comments, avatars)
+               - Set up media settings (sizes, organization)
+               - Configure user roles and permissions
+            
+            4. Taxonomy Setup:
+               - Create main categories based on content pillars
+               - Set up tags strategy
+               - Configure any custom taxonomies required
+               - Establish hierarchy and relationships
+            
+            5. Technical SEO Implementation:
+               - Configure site-wide SEO settings
+               - Set up XML sitemap
+               - Configure robots.txt
+               - Set meta title and description templates
+               - Implement schema markup
+            
+            6. Performance Optimization:
+               - Configure image optimization
+               - Set up caching and performance settings
+               - Optimize database and resources
+               - Ensure mobile-friendly configuration
+            
+            Document all configuration details and provide access instructions.
+            """,
+            agent=agent,
+            expected_output="Comprehensive WordPress site setup documentation with all configuration details"
+        )
+
+    def create_wordpress_publishing_task(self, project_id: str, content_data: Dict[str, Any], site_key: str, agent: Agent, context: List[Task] = None) -> Task:
+        """
+        Create a task for publishing content to WordPress.
+        
+        Args:
+            project_id: Unique identifier for the project
+            content_data: Content to be published
+            site_key: Key for the WordPress site in configuration
+            agent: The agent that will perform this task
+            context: List of tasks that provide context
+            
+        Returns:
+            Task: A CrewAI task for WordPress publishing
+        """
+        return Task(
+            description=f"""
+            Publish the generated content to the WordPress site for project {project_id}.
+            
+            Site key: {site_key}
+            Number of content pieces: {len(content_data.get('content_pieces', []))}
+            
+            Follow these steps to publish each content piece:
+            
+            1. Content Preparation:
+               - Format content for WordPress (HTML, headings, etc.)
+               - Prepare featured images for each post
+               - Structure content with proper heading hierarchy
+               - Add internal links as specified in strategy
+               - Format any custom elements (tables, lists, etc.)
+            
+            2. WordPress Publishing:
+               - Create posts/pages in WordPress using the API
+               - Assign proper categories and tags
+               - Set featured images
+               - Configure SEO metadata (title, description, focus keyword)
+               - Add schema markup if required
+            
+            3. Post-Publishing Checks:
+               - Verify formatting and display
+               - Check all links are working
+               - Ensure images are displaying properly
+               - Validate mobile responsiveness
+               - Test loading speed
+            
+            4. Organization and Documentation:
+               - Create a content inventory with URLs
+               - Document publication dates
+               - Note any special configurations
+               - Record category and tag assignments
+            
+            Publish content according to the content calendar schedule or as specified.
+            """,
+            agent=agent,
+            expected_output="Publication report with all content URLs and publication details",
+            context=context
+        )
+        
     # Additional task creation methods would follow the same pattern
     # Content planning tasks
     # Content generation tasks
-    # WordPress setup tasks
     # Design implementation tasks
     # Monetization tasks
     # Testing and QA tasks

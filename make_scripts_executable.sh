@@ -8,5 +8,7 @@ cd "$(dirname "$0")"
 chmod +x dev.sh
 chmod +x stop_dev.sh
 chmod +x make_scripts_executable.sh
+chmod +x run_tests.py
+chmod +x scripts/test_wordpress_connection.py
 
 echo "Scripts are now executable."

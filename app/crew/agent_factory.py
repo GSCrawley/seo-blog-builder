@@ -128,14 +128,30 @@ class AgentFactory:
         Returns:
             Agent: A CrewAI agent for WordPress setup tasks
         """
+        # Import WordPress tools
+        from app.tools.wordpress_tools import (
+            CreatePostTool, CreateCategoryTool, CreateTagTool,
+            UploadMediaTool, SetupBlogTool
+        )
+        
+        # Create WordPress tools
+        wordpress_tools = [
+            CreatePostTool(),
+            CreateCategoryTool(),
+            CreateTagTool(),
+            UploadMediaTool(),
+            SetupBlogTool()
+        ]
+        
         return Agent(
             role="WordPress Technical Specialist",
             goal="Configure and set up WordPress sites with appropriate themes, plugins, and technical SEO settings",
-            backstory="You are a WordPress expert who specializes in creating optimized, high-performance blog sites with the right technical configuration.",
+            backstory="You are a WordPress expert who specializes in creating optimized, high-performance blog sites with the right technical configuration. You know how to implement SEO best practices in WordPress and how to create a site architecture that supports content strategy.",
             verbose=kwargs.get("verbose", True),
             allow_delegation=kwargs.get("allow_delegation", False),
+            tools=kwargs.get("tools", wordpress_tools),
             llm=self.openai_service.get_llm(),  # Using OpenAI for technical tasks
-            **{k: v for k, v in kwargs.items() if k not in ['verbose', 'allow_delegation']}
+            **{k: v for k, v in kwargs.items() if k not in ['verbose', 'allow_delegation', 'tools']}
         )
     
     def create_design_implementation_agent(self, **kwargs) -> Agent:

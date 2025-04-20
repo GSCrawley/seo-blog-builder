@@ -195,6 +195,60 @@ class CrewManager:
             process=Process.sequential
         )
     
+    def create_wordpress_crew(self, project_id: str, site_data: Dict[str, Any], content_data: Dict[str, Any] = None, site_key: str = "default") -> Crew:
+        """
+        Create a crew for WordPress setup and publishing.
+        
+        Args:
+            project_id: Unique identifier for the project
+            site_data: Site configuration data
+            content_data: Content to be published (optional)
+            site_key: Key for the WordPress site in configuration
+            
+        Returns:
+            Crew: A CrewAI crew for WordPress setup and publishing
+        """
+        logger.info(f"Creating WordPress crew for project {project_id}")
+        
+        # Create WordPress related agents
+        wordpress_setup_agent = self.agent_factory.create_wordpress_setup_agent()
+        design_implementation_agent = self.agent_factory.create_design_implementation_agent()
+        seo_strategy_agent = self.agent_factory.create_seo_strategy_agent()
+        testing_qa_agent = self.agent_factory.create_testing_qa_agent()
+        
+        # Create WordPress setup task
+        wordpress_setup_task = self.task_factory.create_wordpress_setup_task(
+            project_id=project_id,
+            site_data=site_data,
+            agent=wordpress_setup_agent
+        )
+        
+        tasks = [wordpress_setup_task]
+        
+        # Add publishing task if content data is provided
+        if content_data:
+            wordpress_publishing_task = self.task_factory.create_wordpress_publishing_task(
+                project_id=project_id,
+                content_data=content_data,
+                site_key=site_key,
+                agent=wordpress_setup_agent,
+                context=[wordpress_setup_task]
+            )
+            tasks.append(wordpress_publishing_task)
+        
+        # Create and return the crew
+        return Crew(
+            agents=[
+                wordpress_setup_agent,
+                design_implementation_agent,
+                seo_strategy_agent,
+                testing_qa_agent
+            ],
+            tasks=tasks,
+            verbose=2,
+            process=Process.sequential
+        )
+    
     def create_full_blog_creation_crew(self, project_id: str, all_data: Dict[str, Any]) -> Crew:
         """
         Create a full crew for the entire blog creation process.
@@ -219,9 +273,6 @@ class CrewManager:
         monetization_agent = self.agent_factory.create_monetization_agent()
         testing_qa_agent = self.agent_factory.create_testing_qa_agent()
         
-        # Create all tasks (these would be defined in TaskFactory)
-        # For brevity, not all tasks are shown here
-        
         # Client requirements tasks
         client_interview_task = self.task_factory.create_client_interview_task(
             project_id=project_id,
@@ -229,8 +280,29 @@ class CrewManager:
             agent=client_requirements_agent
         )
         
-        # More tasks would be defined here for each stage of the process
+        # WordPress setup task
+        wordpress_setup_task = self.task_factory.create_wordpress_setup_task(
+            project_id=project_id,
+            site_data=all_data.get('site_data', {}),
+            agent=wordpress_setup_agent
+        )
         
+        # WordPress publishing task (to be executed after content is generated)
+        wordpress_publishing_task = None
+        if all_data.get('content_data'):
+            wordpress_publishing_task = self.task_factory.create_wordpress_publishing_task(
+                project_id=project_id,
+                content_data=all_data.get('content_data', {}),
+                site_key=all_data.get('site_key', 'default'),
+                agent=wordpress_setup_agent,
+                context=[wordpress_setup_task]
+            )
+        
+        # Combine all tasks in sequence
+        tasks = [client_interview_task, wordpress_setup_task]
+        if wordpress_publishing_task:
+            tasks.append(wordpress_publishing_task)
+            
         # Create and return the crew with all agents and tasks
         return Crew(
             agents=[
@@ -244,10 +316,7 @@ class CrewManager:
                 monetization_agent,
                 testing_qa_agent
             ],
-            tasks=[
-                client_interview_task,
-                # More tasks would be added here
-            ],
+            tasks=tasks,
             verbose=2,
             process=Process.sequential
         )

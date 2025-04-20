@@ -1,0 +1,94 @@
+{
+    "default": {
+        "URL": "https://example.com/wp-json",
+        "USER": "admin",
+        "PASS": "your-password-here",
+        "authType": "basic",
+        "capabilities": {
+            "discovery": {
+                "wp_discover_endpoints": true
+            },
+            "posts": {
+                "wp_content__get_posts": true,
+                "wp_content__create_post": true,
+                "wp_content__update_post": true,
+                "wp_content__delete_post": false,
+                "wp_content__get_post_revisions": true
+            },
+            "pages": {
+                "wp_content__get_pages": true,
+                "wp_content__create_page": true,
+                "wp_content__update_page": true,
+                "wp_content__delete_page": true
+            },
+            "media": {
+                "wp_media__get_media": true,
+                "wp_media__upload": true,
+                "wp_media__update": true,
+                "wp_media__delete": false
+            },
+            "taxonomy": {
+                "wp_taxonomy__get_categories": true,
+                "wp_taxonomy__create_category": true,
+                "wp_taxonomy__update_category": true,
+                "wp_taxonomy__delete_category": false,
+                "wp_taxonomy__get_tags": true,
+                "wp_taxonomy__create_tag": true,
+                "wp_taxonomy__update_tag": true,
+                "wp_taxonomy__delete_tag": false
+            },
+            "seo": {
+                "wp_seo__get_settings": true,
+                "wp_seo__update_settings": true,
+                "wp_seo__get_sitemap": true,
+                "wp_seo__update_sitemap": true
+            }
+        }
+    },
+    "development": {
+        "URL": "http://localhost:8888/blog/wp-json",
+        "USER": "admin",
+        "PASS": "admin",
+        "authType": "basic",
+        "capabilities": {
+            "discovery": {
+                "wp_discover_endpoints": true
+            },
+            "posts": {
+                "wp_content__get_posts": true,
+                "wp_content__create_post": true,
+                "wp_content__update_post": true,
+                "wp_content__delete_post": true,
+                "wp_content__get_post_revisions": true
+            },
+            "pages": {
+                "wp_content__get_pages": true,
+                "wp_content__create_page": true,
+                "wp_content__update_page": true,
+                "wp_content__delete_page": true
+            },
+            "media": {
+                "wp_media__get_media": true,
+                "wp_media__upload": true,
+                "wp_media__update": true,
+                "wp_media__delete": true
+            },
+            "taxonomy": {
+                "wp_taxonomy__get_categories": true,
+                "wp_taxonomy__create_category": true,
+                "wp_taxonomy__update_category": true,
+                "wp_taxonomy__delete_category": true,
+                "wp_taxonomy__get_tags": true,
+                "wp_taxonomy__create_tag": true,
+                "wp_taxonomy__update_tag": true,
+                "wp_taxonomy__delete_tag": true
+            },
+            "seo": {
+                "wp_seo__get_settings": true,
+                "wp_seo__update_settings": true,
+                "wp_seo__get_sitemap": true,
+                "wp_seo__update_sitemap": true
+            }
+        }
+    }
+}

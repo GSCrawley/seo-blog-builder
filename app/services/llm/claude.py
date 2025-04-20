@@ -11,6 +11,18 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
+# Anthropic API
+ANTHROPIC_MODEL = 'claude-3-7-sonnet-20250219'
+ANTHROPIC_SMALL_FAST_MODEL = 'claude-3-5-haiku-20241022'
+
+# Amazon Bedrock
+BEDROCK_ANTHROPIC_MODEL = 'us.anthropic.claude-3-7-sonnet-20250219-v1:0'
+BEDROCK_ANTHROPIC_SMALL_FAST_MODEL = 'us.anthropic.claude-3-5-haiku-20241022-v1:0'
+
+# Google Vertex AI
+VERTEX_ANTHROPIC_MODEL = 'claude-3-7-sonnet@20250219'
+VERTEX_ANTHROPIC_SMALL_FAST_MODEL = 'claude-3-5-haiku@20241022'
+
 class ClaudeService:
     """
     Service for interacting with Anthropic's Claude API.
@@ -37,7 +49,7 @@ class ClaudeService:
         
         try:
             response = self.client.messages.create(
-                model="claude-3-opus-20240229",
+                model=ANTHROPIC_MODEL,
                 max_tokens=max_tokens,
                 temperature=temperature,
                 messages=[
@@ -77,7 +89,7 @@ class ClaudeService:
         
         try:
             response = self.client.messages.create(
-                model="claude-3-opus-20240229",
+                model=ANTHROPIC_MODEL,
                 temperature=temperature,
                 system=system_prompt,
                 messages=[
@@ -110,6 +122,6 @@ class ClaudeService:
         """
         return CrewClaude(
             api_key=self.api_key,
-            model="claude-3-opus-20240229",
+            model=ANTHROPIC_MODEL,
             temperature=temperature
         )

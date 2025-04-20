@@ -132,3 +132,5 @@ wordpress_exports/
 .env.local
 .env.production
 node_modules/
+
+**/CLAUDE.local.md
