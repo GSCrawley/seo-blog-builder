@@ -119,12 +119,14 @@ Key features:
 - Analytics dashboard for tracking blog performance
 - Settings management
 
+
 See the [frontend README](./frontend/README.md) for more details on the React application.
 
 ## License
 
 MIT License
 
-## Contributors
+All Rights Reserved
 
-- Your Name <your-email@example.com>
+Copyright 2025 Gideon Crawley 
+(gscrawley@gmail.com)
